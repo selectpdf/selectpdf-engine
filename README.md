@@ -13,7 +13,7 @@ redaction - and the license check. **The engine itself needs no license key.**
 
 ## Why use it
 
-- **Alpine Linux.** The native engines cannot run on musl-based systems. With the remote engine, an application
+- **Alpine Linux.** The native engine packages target glibc-based Linux. With the remote engine, an application
   on `mcr.microsoft.com/dotnet/aspnet:10.0-alpine` converts like any other: this is the supported way to use
   the library there.
 - **A small application.** The application references only the managed package (`SelectPdf.Universal`, or
@@ -29,8 +29,8 @@ redaction - and the license check. **The engine itself needs no license key.**
 
 | tag | what it is |
 |---|---|
-| `26.5.0` | the engine for SelectPdf.Universal 26.5.0 |
-| `26.5` | the latest build for 26.5 |
+| `26.6.0` | the engine for SelectPdf.Universal 26.6.0 |
+| `26.6` | the latest build for 26.6 |
 
 Each tag is a multi-architecture image for **linux/amd64** and **linux/arm64**; Docker picks the right one.
 **Use the tag of the library version your application references.** There is no `latest` tag. When an engine
@@ -49,7 +49,7 @@ export SELECTPDF_ENGINE_TOKEN="$(openssl rand -base64 32)"
 docker run -d --name selectpdf-engine -p 8080:8080 \
   --read-only --tmpfs /tmp \
   -e SELECTPDF_ENGINE_TOKEN \
-  ghcr.io/selectpdf/engine:26.5
+  ghcr.io/selectpdf/engine:26.6
 ```
 
 The engine reports healthy once it has done a first conversion, a second or two after it starts:
@@ -147,7 +147,7 @@ Name the engine service `selectpdf-engine` and the application needs no endpoint
 ```yaml
 services:
   selectpdf-engine:
-    image: ghcr.io/selectpdf/engine:26.5
+    image: ghcr.io/selectpdf/engine:26.6
     read_only: true
     tmpfs:
       - /tmp
@@ -179,7 +179,7 @@ in a Secret and a PodDisruptionBudget:
 
 ```sh
 helm install selectpdf-engine \
-  oci://ghcr.io/selectpdf/charts/selectpdf-engine --version 26.5.0 \
+  oci://ghcr.io/selectpdf/charts/selectpdf-engine --version 26.6.0 \
   --namespace pdf --create-namespace \
   --set auth.token="$(openssl rand -base64 32)"
 ```
@@ -211,7 +211,7 @@ spec:
     spec:
       containers:
         - name: engine
-          image: ghcr.io/selectpdf/engine:26.5
+          image: ghcr.io/selectpdf/engine:26.6
           ports:
             - containerPort: 8080
           env:
@@ -315,7 +315,7 @@ document of one or two pages, one engine limited to N CPUs:
 | 4 | about 50 ms | about 18 |
 | 8 | about 50 ms | about 24 |
 
-Real pages take longer, mostly in fetching them. Throughput grows little beyond 4 to 8 CPUs per engine; for more,
+Real pages add the time it takes to fetch them. One engine scales best up to 4 to 8 CPUs; for more throughput,
 run more replicas behind one service. Memory stayed under 500 MB with eight light conversions at once; heavy pages
 (news sites, long reports) need more - give each engine 2 GB or more.
 
